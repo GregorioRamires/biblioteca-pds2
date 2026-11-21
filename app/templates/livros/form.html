@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+<form class="formulario" method="post">
+  <label for="titulo">Título *</label>
+  <input id="titulo" name="titulo" value="{{ livro.titulo }}" required autofocus>
+
+  <label for="autor">Autor *</label>
+  <input id="autor" name="autor" value="{{ livro.autor }}" required>
+
+  <label for="categoria_id">Categoria *</label>
+  <select id="categoria_id" name="categoria_id" required>
+    <option value="">Selecione…</option>
+    {% for c in categorias %}
+    <option value="{{ c.id }}" {% if c.id|string == livro.categoria_id|string %}selected{% endif %}>{{ c.nome }}</option>
+    {% endfor %}
+  </select>
+
+  <div class="linha">
+    <div>
+      <label for="isbn">ISBN</label>
+      <input id="isbn" name="isbn" value="{{ livro.isbn or '' }}" maxlength="20">
+    </div>
+    <div>
+      <label for="ano_publicacao">Ano de publicação</label>
+      <input id="ano_publicacao" name="ano_publicacao" type="number" min="1000" value="{{ livro.ano_publicacao or '' }}">
+    </div>
+    <div>
+      <label for="quantidade">Exemplares *</label>
+      <input id="quantidade" name="quantidade" type="number" min="1" value="{{ livro.quantidade }}" required>
+    </div>
+  </div>
+
+  <div class="botoes">
+    <button class="botao">Salvar</button>
+    <a class="botao botao-secundario" href="{{ url_for('livros.listar') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

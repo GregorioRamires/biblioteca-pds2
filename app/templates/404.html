@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block titulo %}Não encontrado{% endblock %}
+{% block conteudo %}
+<div class="vazio">
+  <h1>Página não encontrada</h1>
+  <p>O registro que você procura não existe ou foi excluído.</p>
+  <a class="botao" href="{{ url_for('painel.index') }}">Voltar ao painel</a>
+</div>
+{% endblock %}

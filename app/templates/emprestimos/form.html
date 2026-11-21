@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block titulo %}Novo empréstimo{% endblock %}
+{% block conteudo %}
+<h1>Novo empréstimo</h1>
+
+{% if not livros or not leitores %}
+<p class="vazio">
+  Para registrar um empréstimo é preciso ter pelo menos um
+  <a href="{{ url_for('livros.listar') }}">livro com exemplar disponível</a> e um
+  <a href="{{ url_for('leitores.listar') }}">leitor cadastrado</a>.
+</p>
+{% else %}
+<form class="formulario" method="post">
+  <label for="livro_id">Livro *</label>
+  <select id="livro_id" name="livro_id" required autofocus>
+    <option value="">Selecione…</option>
+    {% for l in livros %}
+    <option value="{{ l.id }}" {% if l.id|string == emprestimo.livro_id|string %}selected{% endif %}>{{ l.titulo }} — {{ l.autor }} ({{ l.disponiveis }} disponível(is))</option>
+    {% endfor %}
+  </select>
+
+  <label for="leitor_id">Leitor *</label>
+  <select id="leitor_id" name="leitor_id" required>
+    <option value="">Selecione…</option>
+    {% for r in leitores %}
+    <option value="{{ r.id }}" {% if r.id|string == emprestimo.leitor_id|string %}selected{% endif %}>{{ r.nome }}</option>
+    {% endfor %}
+  </select>
+
+  <div class="linha">
+    <div>
+      <label for="data_emprestimo">Data do empréstimo *</label>
+      <input id="data_emprestimo" name="data_emprestimo" type="date" value="{{ emprestimo.data_emprestimo }}" required>
+    </div>
+    <div>
+      <label for="data_prevista">Devolução prevista *</label>
+      <input id="data_prevista" name="data_prevista" type="date" value="{{ emprestimo.data_prevista }}" required>
+    </div>
+  </div>
+  <p class="dica">O prazo padrão de devolução é de {{ prazo }} dias.</p>
+
+  <div class="botoes">
+    <button class="botao">Registrar empréstimo</button>
+    <a class="botao botao-secundario" href="{{ url_for('emprestimos.listar') }}">Cancelar</a>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

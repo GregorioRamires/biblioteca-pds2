@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Empréstimos{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Empréstimos</h1>
+  <a class="botao" href="{{ url_for('emprestimos.criar') }}">+ Novo empréstimo</a>
+</div>
+
+<div class="abas">
+  <a href="{{ url_for('emprestimos.listar') }}" {% if not situacao %}class="ativo"{% endif %}>Todos</a>
+  {% for chave, rotulo in SITUACOES.items() %}
+  <a href="{{ url_for('emprestimos.listar', situacao=chave) }}" {% if situacao == chave %}class="ativo"{% endif %}>{{ rotulo }}</a>
+  {% endfor %}
+</div>
+
+{% if emprestimos %}
+<div class="tabela-rolagem">
+  <table>
+    <thead>
+      <tr><th>Livro</th><th>Leitor</th><th>Emprestado em</th><th>Devolução prevista</th><th>Devolvido em</th><th>Situação</th><th class="acoes">Ações</th></tr>
+    </thead>
+    <tbody>
+      {% for e in emprestimos %}
+      <tr>
+        <td>{{ e.livro }}</td>
+        <td>{{ e.leitor }}</td>
+        <td>{{ e.data_emprestimo|data_br }}</td>
+        <td>{{ e.data_prevista|data_br }}</td>
+        <td>{{ e.data_devolucao|data_br }}</td>
+        <td><span class="etiqueta etiqueta-{{ e.situacao }}">{{ SITUACOES[e.situacao] }}</span></td>
+        <td class="acoes">
+          {% if not e.data_devolucao %}
+          <form method="post" action="{{ url_for('emprestimos.devolver', id=e.id) }}">
+            <button class="botao botao-pequeno">Devolver</button>
+          </form>
+          <a class="botao botao-pequeno botao-secundario" href="{{ url_for('emprestimos.renovar', id=e.id) }}">Renovar</a>
+          {% endif %}
+          <form method="post" action="{{ url_for('emprestimos.excluir', id=e.id) }}"
+                onsubmit="return confirm('Excluir este registro de empréstimo?');">
+            <button class="botao botao-pequeno botao-perigo">Excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="vazio">Nenhum empréstimo encontrado.</p>
+{% endif %}
+{% endblock %}

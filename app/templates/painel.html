@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Painel</h1>
+  <a class="botao" href="{{ url_for('emprestimos.criar') }}">+ Novo empréstimo</a>
+</div>
+
+<section class="cartoes">
+  <div class="cartao"><span class="numero">{{ resumo.titulos }}</span><span class="rotulo">Títulos cadastrados</span></div>
+  <div class="cartao"><span class="numero">{{ resumo.exemplares }}</span><span class="rotulo">Exemplares no acervo</span></div>
+  <div class="cartao"><span class="numero">{{ resumo.leitores }}</span><span class="rotulo">Leitores</span></div>
+  <div class="cartao"><span class="numero">{{ resumo.em_aberto }}</span><span class="rotulo">Empréstimos em aberto</span></div>
+  <div class="cartao {% if resumo.atrasados %}cartao-alerta{% endif %}"><span class="numero">{{ resumo.atrasados }}</span><span class="rotulo">Em atraso</span></div>
+</section>
+
+<h2>Empréstimos em atraso</h2>
+{% if atrasados %}
+<div class="tabela-rolagem">
+  <table>
+    <thead><tr><th>Livro</th><th>Leitor</th><th>Emprestado em</th><th>Devolução prevista</th><th class="acoes">Ações</th></tr></thead>
+    <tbody>
+      {% for e in atrasados %}
+      <tr>
+        <td>{{ e.livro }}</td>
+        <td>{{ e.leitor }}</td>
+        <td>{{ e.data_emprestimo|data_br }}</td>
+        <td>{{ e.data_prevista|data_br }}</td>
+        <td class="acoes">
+          <form method="post" action="{{ url_for('emprestimos.devolver', id=e.id) }}">
+            <button class="botao botao-pequeno">Registrar devolução</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="vazio">Nenhum empréstimo em atraso.</p>
+{% endif %}
+
+<h2>Últimos empréstimos</h2>
+{% if recentes %}
+<div class="tabela-rolagem">
+  <table>
+    <thead><tr><th>Livro</th><th>Leitor</th><th>Emprestado em</th><th>Situação</th></tr></thead>
+    <tbody>
+      {% for e in recentes %}
+      <tr>
+        <td>{{ e.livro }}</td>
+        <td>{{ e.leitor }}</td>
+        <td>{{ e.data_emprestimo|data_br }}</td>
+        <td><span class="etiqueta etiqueta-{{ e.situacao }}">{{ SITUACOES[e.situacao] }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="vazio">Nenhum empréstimo registrado ainda.</p>
+{% endif %}
+{% endblock %}

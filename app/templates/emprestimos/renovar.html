@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Renovar empréstimo{% endblock %}
+{% block conteudo %}
+<h1>Renovar empréstimo</h1>
+<form class="formulario" method="post">
+  <dl class="resumo">
+    <dt>Livro</dt><dd>{{ emprestimo.livro }}</dd>
+    <dt>Leitor</dt><dd>{{ emprestimo.leitor }}</dd>
+    <dt>Emprestado em</dt><dd>{{ emprestimo.data_emprestimo|data_br }}</dd>
+    <dt>Situação</dt><dd><span class="etiqueta etiqueta-{{ emprestimo.situacao }}">{{ SITUACOES[emprestimo.situacao] }}</span></dd>
+  </dl>
+
+  <label for="data_prevista">Nova data de devolução *</label>
+  <input id="data_prevista" name="data_prevista" type="date" value="{{ nova_data }}" min="{{ emprestimo.data_emprestimo }}" required autofocus>
+
+  <div class="botoes">
+    <button class="botao">Salvar</button>
+    <a class="botao botao-secundario" href="{{ url_for('emprestimos.listar') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

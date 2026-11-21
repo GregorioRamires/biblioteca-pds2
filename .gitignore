@@ -1,0 +1,7 @@
+# Ambiente virtual e arquivos gerados pelo Python
+.venv/
+__pycache__/
+*.pyc
+
+# Banco de dados local (criado automaticamente ao rodar o sistema)
+instance/

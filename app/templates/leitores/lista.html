@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titulo %}Leitores{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Leitores</h1>
+  <a class="botao" href="{{ url_for('leitores.criar') }}">+ Novo leitor</a>
+</div>
+
+<form class="filtros" method="get">
+  <input type="search" name="q" value="{{ busca }}" placeholder="Buscar por nome ou e-mail" aria-label="Buscar por nome ou e-mail">
+  <button class="botao botao-secundario">Buscar</button>
+  {% if busca %}<a href="{{ url_for('leitores.listar') }}">Limpar busca</a>{% endif %}
+</form>
+
+{% if leitores %}
+<div class="tabela-rolagem">
+  <table>
+    <thead>
+      <tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Cadastro</th><th class="num">Em aberto</th><th class="acoes">Ações</th></tr>
+    </thead>
+    <tbody>
+      {% for r in leitores %}
+      <tr>
+        <td>{{ r.nome }}</td>
+        <td>{{ r.email }}</td>
+        <td>{{ r.telefone or '—' }}</td>
+        <td>{{ r.data_cadastro|data_br }}</td>
+        <td class="num">{{ r.em_aberto }}</td>
+        <td class="acoes">
+          <a class="botao botao-pequeno botao-secundario" href="{{ url_for('leitores.editar', id=r.id) }}">Editar</a>
+          <form method="post" action="{{ url_for('leitores.excluir', id=r.id) }}"
+                onsubmit="return confirm('Excluir este leitor?');">
+            <button class="botao botao-pequeno botao-perigo">Excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="vazio">Nenhum leitor encontrado.</p>
+{% endif %}
+{% endblock %}

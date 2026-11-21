@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{% endblock %} · Biblioteca</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-interno">
+      <a class="marca" href="{{ url_for('painel.index') }}">Biblioteca</a>
+      <nav>
+        <a href="{{ url_for('painel.index') }}" {% if request.blueprint == 'painel' %}class="ativo"{% endif %}>Painel</a>
+        <a href="{{ url_for('livros.listar') }}" {% if request.blueprint == 'livros' %}class="ativo"{% endif %}>Livros</a>
+        <a href="{{ url_for('categorias.listar') }}" {% if request.blueprint == 'categorias' %}class="ativo"{% endif %}>Categorias</a>
+        <a href="{{ url_for('leitores.listar') }}" {% if request.blueprint == 'leitores' %}class="ativo"{% endif %}>Leitores</a>
+        <a href="{{ url_for('emprestimos.listar') }}" {% if request.blueprint == 'emprestimos' %}class="ativo"{% endif %}>Empréstimos</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="conteudo">
+    {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
+      <div class="aviso aviso-{{ categoria }}" role="alert">{{ mensagem }}</div>
+    {% endfor %}
+    {% block conteudo %}{% endblock %}
+  </main>
+
+  <footer class="rodape">Sistema de Gerenciamento de Biblioteca · Projeto de Desenvolvimento de Software II</footer>
+</body>
+</html>
