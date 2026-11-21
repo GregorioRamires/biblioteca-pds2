@@ -18,8 +18,8 @@ from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
-    BaseDocTemplate, Frame, Image, KeepTogether, NextPageTemplate, PageBreak,
-    PageTemplate, Paragraph, Preformatted, Spacer, Table, TableStyle,
+    BaseDocTemplate, Frame, KeepTogether, NextPageTemplate, PageBreak,
+    PageTemplate, Paragraph, Spacer, Table, TableStyle,
 )
 from reportlab.platypus.tableofcontents import TableOfContents
 
@@ -39,7 +39,6 @@ DATA_ACESSO = "21 nov. 2026"
 TITULO = "SISTEMA DE GERENCIAMENTO DE BIBLIOTECA"
 PASTA = Path(__file__).parent
 SAIDA = PASTA / "Documentacao.pdf"
-IMAGENS = PASTA / "img"
 
 AZUL = colors.HexColor("#1f4e5f")
 AZUL_CLARO = colors.HexColor("#e8f0f3")
@@ -162,21 +161,11 @@ def figura(numero, titulo, conteudo):
                          Paragraph(f"Fonte: elaborado pelo autor ({ANO}).", FONTE)])
 
 
-def captura(nome, largura_px, altura_px):
-    largura = 14 * cm
-    img = Image(str(IMAGENS / nome), width=largura, height=largura * altura_px / largura_px)
-    borda = Table([[img]], colWidths=[largura])
-    borda.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#999999")),
-                               ("LEFTPADDING", (0, 0), (-1, -1), 0), ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                               ("TOPPADDING", (0, 0), (-1, -1), 0), ("BOTTOMPADDING", (0, 0), (-1, -1), 0)]))
-    return borda
-
-
 # ----------------------------------------------------------------------------
 # Diagramas (desenhados em vetor)
 # ----------------------------------------------------------------------------
 def diagrama_casos_de_uso():
-    largura, altura = LARGURA_UTIL, 400
+    largura, altura = LARGURA_UTIL, 345
     d = Drawing(largura, altura)
     casos = [
         "UC01 – Manter categorias",
@@ -204,7 +193,7 @@ def diagrama_casos_de_uso():
 
     topo, base = altura - 68, 40
     passo = (topo - base) / (len(casos) - 1)
-    raio_x, raio_y = 112, 18
+    raio_x, raio_y = 112, 15
     for i, nome in enumerate(casos):
         y = topo - i * passo
         d.add(Line(ax + 22, ay + 4, centro_x - raio_x, y, strokeColor=colors.black, strokeWidth=0.7))
@@ -312,287 +301,138 @@ def sumario():
 def introducao():
     return [
         Paragraph("1 INTRODUÇÃO", TITULO1),
-        p("Bibliotecas pequenas, como as de escolas, igrejas, associações de bairro e empresas, "
-          "normalmente controlam seus empréstimos em cadernos ou planilhas. Esse controle manual "
-          "funciona enquanto o acervo é pequeno, mas rapidamente gera problemas: não se sabe com "
-          "quem está determinado livro, um mesmo exemplar é prometido para duas pessoas, os atrasos "
-          "passam despercebidos e os dados dos leitores ficam espalhados e desatualizados."),
+        p("Bibliotecas pequenas, como as de escolas, igrejas e associações de bairro, normalmente "
+          "controlam seus empréstimos em cadernos ou planilhas. Esse controle manual gera problemas: "
+          "não se sabe com quem está determinado livro, um mesmo exemplar é prometido para duas "
+          "pessoas e os atrasos passam despercebidos."),
         p("Este trabalho apresenta o <b>Sistema de Gerenciamento de Biblioteca</b>, uma aplicação web "
           "desenvolvida para a disciplina de Projeto de Desenvolvimento de Software II. O sistema "
           "permite ao bibliotecário cadastrar categorias, livros e leitores, registrar empréstimos e "
-          "devoluções e acompanhar, em um painel, a situação do acervo e os empréstimos em atraso."),
-        p("O sistema se comunica com um banco de dados relacional e implementa as quatro operações de "
-          "CRUD (criar, consultar, atualizar e excluir) para todas as entidades. Além do CRUD, foram "
-          "implementadas regras de negócio próprias do domínio, como o controle de exemplares "
-          "disponíveis e o bloqueio de novos empréstimos para leitores com devolução em atraso."),
+          "devoluções e acompanhar, em um painel, os empréstimos em atraso. Ele se comunica com um "
+          "banco de dados relacional e implementa as quatro operações de CRUD (criar, consultar, "
+          "atualizar e excluir) para todas as entidades."),
 
         Paragraph("1.1 Objetivos", TITULO2),
-        p("O objetivo geral do projeto é desenvolver um sistema web que substitua o controle manual "
-          "de empréstimos de uma biblioteca de pequeno porte. Os objetivos específicos são:"),
+        p("O objetivo geral é desenvolver um sistema web que substitua o controle manual de "
+          "empréstimos de uma biblioteca de pequeno porte. Os objetivos específicos são:"),
         *itens([
-            "levantar e documentar os requisitos funcionais e não funcionais do sistema;",
-            "modelar o sistema por meio de diagrama de casos de uso e de diagrama "
-            "entidade-relacionamento (DER);",
-            "implementar o sistema de acordo com a documentação, com persistência em banco de dados "
-            "relacional;",
-            "garantir a integridade dos dados por meio de validações e de restrições no banco;",
-            "versionar o código-fonte com Git e publicá-lo em um repositório no GitHub.",
+            "levantar os requisitos funcionais e não funcionais do sistema;",
+            "modelar o sistema com diagrama de casos de uso e diagrama entidade-relacionamento;",
+            "implementar o sistema conforme a documentação e publicá-lo no GitHub.",
         ]),
 
         Paragraph("1.2 Stack utilizada", TITULO2),
-        p("As tecnologias foram escolhidas por serem gratuitas, bem documentadas e simples de "
-          "instalar, o que permite que qualquer pessoa execute o projeto apenas com o Python "
-          "instalado. O Quadro 1 apresenta cada tecnologia e a sua função no projeto."),
-        *quadro(1, "Tecnologias utilizadas no projeto", [
-            ["Tecnologia", "Função no projeto"],
-            ["Python 3.12", "Linguagem de programação de toda a aplicação."],
-            ["Flask 3", "Microframework web: recebe as requisições HTTP, define as rotas e devolve as páginas."],
-            ["SQLite 3", "Banco de dados relacional, gravado em um único arquivo e acessado pelo módulo "
-                         "<i>sqlite3</i> da biblioteca padrão do Python, com comandos SQL escritos manualmente."],
-            ["Jinja2", "Motor de <i>templates</i> que gera as páginas HTML a partir dos dados do banco."],
-            ["HTML5 e CSS3", "Estrutura e aparência das telas, com layout responsivo e sem dependências externas."],
-            ["unittest", "Biblioteca padrão do Python usada para os testes automatizados."],
-            ["Git e GitHub", "Controle de versão e hospedagem do repositório do projeto."],
-        ], [3, 10]),
-
-        Paragraph("1.3 Autoria e repositório", TITULO2),
+        p("O sistema foi escrito em <b>Python 3.12</b> com o microframework web <b>Flask</b>, que "
+          "recebe as requisições, define as rotas e devolve as páginas (PALLETS, 2026). Os dados são "
+          "gravados em um banco relacional <b>SQLite</b> (SQLITE, 2026), acessado com comandos SQL "
+          "pelo módulo sqlite3 da biblioteca padrão do Python (PYTHON SOFTWARE FOUNDATION, 2026). As "
+          "telas são páginas <b>HTML e CSS</b> geradas por <i>templates</i> Jinja2. O projeto possui "
+          "testes automatizados com a biblioteca unittest e é versionado com <b>Git</b>."),
         p(f"O projeto foi desenvolvido individualmente por {ALUNO}. O código-fonte está disponível "
-          f"no repositório do GitHub: {REPOSITORIO}."),
+          f"em: {REPOSITORIO}."),
         PageBreak(),
     ]
 
 
 def desenvolvimento():
-    partes = [
+    return [
         Paragraph("2 DESENVOLVIMENTO", TITULO1),
-        p("Este capítulo apresenta os requisitos levantados, as regras de negócio, os diagramas "
-          "de casos de uso e de entidade-relacionamento e, por fim, a implementação do sistema."),
+        p("Este capítulo apresenta os requisitos do sistema, o diagrama de casos de uso e o "
+          "diagrama entidade-relacionamento."),
 
         Paragraph("2.1 Requisitos funcionais", TITULO2),
         p("Os requisitos funcionais descrevem o que o sistema deve fazer (SOMMERVILLE, 2018). "
-          "O Quadro 2 lista os requisitos funcionais do sistema, todos implementados."),
-        *quadro(2, "Requisitos funcionais", [
+          "O Quadro 1 lista os requisitos funcionais, todos implementados."),
+        *quadro(1, "Requisitos funcionais", [
             ["Código", "Descrição", "Prioridade"],
-            ["RF01", "O sistema deve permitir cadastrar, listar, editar e excluir categorias de livros.", "Essencial"],
-            ["RF02", "O sistema deve permitir cadastrar, listar, editar e excluir livros, com título, autor, "
-                     "ISBN, ano de publicação, quantidade de exemplares e categoria.", "Essencial"],
-            ["RF03", "O sistema deve permitir buscar livros por título ou autor e filtrá-los por categoria.", "Importante"],
-            ["RF04", "O sistema deve permitir cadastrar, listar, editar e excluir leitores, com nome, e-mail "
-                     "e telefone.", "Essencial"],
-            ["RF05", "O sistema deve permitir buscar leitores por nome ou e-mail.", "Importante"],
-            ["RF06", "O sistema deve permitir registrar o empréstimo de um livro a um leitor, com a data do "
-                     "empréstimo e a data prevista de devolução.", "Essencial"],
-            ["RF07", "O sistema deve permitir registrar a devolução de um livro emprestado.", "Essencial"],
-            ["RF08", "O sistema deve permitir renovar um empréstimo, alterando a data prevista de devolução.", "Importante"],
-            ["RF09", "O sistema deve listar os empréstimos e permitir filtrá-los pela situação: no prazo, "
-                     "atrasado ou devolvido.", "Essencial"],
-            ["RF10", "O sistema deve permitir excluir um registro de empréstimo lançado por engano.", "Importante"],
-            ["RF11", "O sistema deve exibir, para cada livro, quantos exemplares estão disponíveis.", "Essencial"],
-            ["RF12", "O sistema deve exibir um painel com os totais do acervo e a lista de empréstimos em atraso.", "Desejável"],
+            ["RF01", "Cadastrar, listar, editar e excluir categorias de livros.", "Essencial"],
+            ["RF02", "Cadastrar, listar, editar e excluir livros, com título, autor, ISBN, ano de "
+                     "publicação, quantidade de exemplares e categoria.", "Essencial"],
+            ["RF03", "Buscar livros por título ou autor e filtrá-los por categoria.", "Importante"],
+            ["RF04", "Cadastrar, listar, buscar, editar e excluir leitores, com nome, e-mail e "
+                     "telefone.", "Essencial"],
+            ["RF05", "Registrar o empréstimo de um livro a um leitor, com a data do empréstimo e a "
+                     "data prevista de devolução.", "Essencial"],
+            ["RF06", "Registrar a devolução de um livro emprestado.", "Essencial"],
+            ["RF07", "Renovar um empréstimo, alterando a data prevista de devolução.", "Importante"],
+            ["RF08", "Listar os empréstimos, filtrá-los pela situação (no prazo, atrasado ou "
+                     "devolvido) e excluir um registro lançado por engano.", "Essencial"],
+            ["RF09", "Exibir, para cada livro, quantos exemplares estão disponíveis.", "Essencial"],
+            ["RF10", "Impedir o empréstimo de livro sem exemplar disponível e o empréstimo a leitor "
+                     "com devolução em atraso.", "Essencial"],
+            ["RF11", "Impedir a exclusão de categoria que possua livros e de livro ou leitor que "
+                     "possua empréstimos registrados.", "Essencial"],
+            ["RF12", "Exibir um painel com os totais do acervo e os empréstimos em atraso.", "Desejável"],
         ], [1.6, 9.6, 2.2]),
 
         Paragraph("2.2 Requisitos não funcionais", TITULO2),
-        p("Os requisitos não funcionais definem restrições e qualidades do sistema, como segurança, "
-          "usabilidade e manutenibilidade. Eles estão listados no Quadro 3."),
-        *quadro(3, "Requisitos não funcionais", [
+        p("Os requisitos não funcionais definem restrições e qualidades do sistema. Eles estão "
+          "listados no Quadro 2."),
+        *quadro(2, "Requisitos não funcionais", [
             ["Código", "Categoria", "Descrição"],
-            ["RNF01", "Persistência", "Os dados devem ser gravados em banco de dados relacional (SQLite), com "
-                                      "integridade referencial garantida por chaves estrangeiras."],
-            ["RNF02", "Usabilidade", "A interface deve ser em português, exibir mensagens claras de sucesso e de "
-                                     "erro e pedir confirmação antes de qualquer exclusão."],
-            ["RNF03", "Portabilidade", "O sistema deve funcionar nos navegadores atuais (Chrome, Edge e Firefox) "
-                                       "e adaptar o layout a telas de computador e de celular."],
-            ["RNF04", "Segurança", "Todas as consultas ao banco devem ser parametrizadas, para impedir injeção de "
-                                   "SQL, e todo dado exibido nas páginas deve ser escapado, para impedir a "
-                                   "injeção de scripts."],
-            ["RNF05", "Confiabilidade", "Todos os dados recebidos devem ser validados no servidor, e as regras "
-                                        "essenciais devem existir também no banco (NOT NULL, UNIQUE e CHECK)."],
-            ["RNF06", "Manutenibilidade", "O código deve ser organizado em módulos, um por entidade, e possuir "
-                                          "testes automatizados das principais funcionalidades."],
-            ["RNF07", "Instalação", "O sistema deve depender apenas do Python e do Flask, e o banco de dados deve "
-                                    "ser criado automaticamente na primeira execução."],
-            ["RNF08", "Versionamento", "O código-fonte deve ser versionado com Git e publicado no GitHub."],
+            ["RNF01", "Persistência", "Os dados devem ser gravados em banco de dados relacional (SQLite), "
+                                      "com integridade referencial por chaves estrangeiras."],
+            ["RNF02", "Usabilidade", "A interface deve ser em português, exibir mensagens claras de "
+                                     "sucesso e de erro e pedir confirmação antes de excluir."],
+            ["RNF03", "Portabilidade", "O sistema deve funcionar nos navegadores atuais e adaptar o "
+                                       "layout a telas de computador e de celular."],
+            ["RNF04", "Segurança", "As consultas ao banco devem ser parametrizadas, para impedir "
+                                   "injeção de SQL."],
+            ["RNF05", "Confiabilidade", "Os dados recebidos devem ser validados no servidor e por "
+                                        "restrições do banco (NOT NULL, UNIQUE e CHECK)."],
+            ["RNF06", "Manutenibilidade", "O código deve ser organizado em módulos, um por entidade, e "
+                                          "possuir testes automatizados."],
+            ["RNF07", "Versionamento", "O código-fonte deve ser versionado com Git e publicado no GitHub."],
         ], [1.7, 3.1, 8.6]),
 
-        Paragraph("2.3 Regras de negócio", TITULO2),
-        p("Além dos requisitos, foram definidas as regras de negócio do Quadro 4. Elas são verificadas "
-          "pelo sistema sempre que um dado é gravado."),
-        *quadro(4, "Regras de negócio", [
-            ["Código", "Regra"],
-            ["RN01", "Um livro só pode ser emprestado se houver pelo menos um exemplar disponível "
-                     "(quantidade cadastrada menos exemplares emprestados)."],
-            ["RN02", "Um leitor com empréstimo em atraso não pode realizar novo empréstimo."],
-            ["RN03", "Cada leitor pode ter, no máximo, três empréstimos em aberto ao mesmo tempo."],
-            ["RN04", "O prazo padrão de devolução é de 14 dias, podendo ser alterado no momento do empréstimo "
-                     "ou na renovação."],
-            ["RN05", "A data do empréstimo não pode ser futura, e a data prevista de devolução não pode ser "
-                     "anterior à data do empréstimo."],
-            ["RN06", "Não é permitido excluir uma categoria que possua livros, nem um livro ou um leitor que "
-                     "possua empréstimos registrados."],
-            ["RN07", "A quantidade de exemplares de um livro não pode ser reduzida para um valor menor que o "
-                     "número de exemplares emprestados no momento."],
-            ["RN08", "O nome da categoria, o ISBN do livro e o e-mail do leitor não podem se repetir."],
-        ], [1.6, 11.8]),
-
-        Paragraph("2.4 Diagrama de casos de uso", TITULO2),
+        Paragraph("2.3 Diagrama de casos de uso", TITULO2),
         p("O diagrama de casos de uso representa as funcionalidades do sistema do ponto de vista de "
-          "quem o utiliza (GUEDES, 2018). O sistema possui um único ator, o bibliotecário, que realiza "
-          "os sete casos de uso apresentados na Figura 1."),
-        figura(1, "Diagrama de casos de uso", diagrama_casos_de_uso()),
-        p("O Quadro 5 descreve resumidamente cada caso de uso e indica os requisitos funcionais "
-          "atendidos por ele."),
-        *quadro(5, "Descrição dos casos de uso", [
+          "quem o utiliza (GUEDES, 2018). O sistema possui um único ator, o bibliotecário, e sete "
+          "casos de uso, apresentados na Figura 1 e descritos no Quadro 3."),
+        *quadro(3, "Descrição dos casos de uso", [
             ["Caso de uso", "Descrição", "Requisitos"],
-            ["UC01 – Manter categorias", "O bibliotecário cadastra, consulta, altera e exclui as categorias "
-                                         "usadas para classificar os livros.", "RF01"],
-            ["UC02 – Manter livros", "O bibliotecário cadastra, consulta, busca, altera e exclui os livros "
-                                     "do acervo.", "RF02, RF03, RF11"],
-            ["UC03 – Manter leitores", "O bibliotecário cadastra, consulta, busca, altera e exclui os leitores.",
-             "RF04, RF05"],
-            ["UC04 – Registrar empréstimo", "O bibliotecário registra a saída de um livro para um leitor.",
-             "RF06"],
-            ["UC05 – Registrar devolução", "O bibliotecário registra o retorno de um livro emprestado, que "
-                                           "volta a ficar disponível.", "RF07"],
-            ["UC06 – Renovar empréstimo", "O bibliotecário altera a data prevista de devolução de um "
-                                          "empréstimo em aberto.", "RF08"],
-            ["UC07 – Consultar painel e atrasos", "O bibliotecário consulta os totais do acervo e os "
-                                                  "empréstimos por situação, e exclui lançamentos incorretos.",
-             "RF09, RF10, RF12"],
-        ], [4.2, 6.8, 2.4]),
-        p("O caso de uso mais importante do sistema, por concentrar a maior parte das regras de "
-          "negócio, é o UC04. Sua especificação completa está no Quadro 6."),
-        *quadro(6, "Especificação do caso de uso UC04 – Registrar empréstimo", [
-            ["Item", "Descrição"],
-            ["Ator", "Bibliotecário."],
-            ["Pré-condições", "Existir ao menos um leitor cadastrado e um livro com exemplar disponível."],
-            ["Fluxo principal",
-             "1. O bibliotecário acessa a tela de empréstimos e escolhe “Novo empréstimo”.<br/>"
-             "2. O sistema exibe os livros com exemplar disponível e os leitores cadastrados, sugerindo a "
-             "data atual e a devolução em 14 dias.<br/>"
-             "3. O bibliotecário seleciona o livro e o leitor e, se necessário, ajusta as datas.<br/>"
-             "4. O sistema valida os dados e as regras de negócio.<br/>"
-             "5. O sistema grava o empréstimo e exibe a mensagem de sucesso."],
-            ["Fluxos alternativos",
-             "4a. Não há exemplar disponível (RN01): o sistema informa o erro e não grava.<br/>"
-             "4b. O leitor possui empréstimo em atraso (RN02): o sistema informa o erro e não grava.<br/>"
-             "4c. O leitor atingiu o limite de três empréstimos (RN03): o sistema informa o erro e não grava.<br/>"
-             "4d. As datas são inválidas (RN05): o sistema informa o erro e mantém os dados preenchidos."],
-            ["Pós-condições", "O empréstimo fica registrado com a situação “no prazo”, e a quantidade de "
-                              "exemplares disponíveis do livro diminui em uma unidade."],
-        ], [3.2, 10.2]),
+            ["UC01 – Manter categorias", "Cadastrar, consultar, alterar e excluir as categorias dos "
+                                         "livros.", "RF01, RF11"],
+            ["UC02 – Manter livros", "Cadastrar, consultar, buscar, alterar e excluir os livros do "
+                                     "acervo.", "RF02, RF03, RF09, RF11"],
+            ["UC03 – Manter leitores", "Cadastrar, consultar, buscar, alterar e excluir os leitores.",
+             "RF04, RF11"],
+            ["UC04 – Registrar empréstimo", "Registrar a saída de um livro para um leitor, se houver "
+                                            "exemplar disponível e o leitor não estiver em atraso.",
+             "RF05, RF10"],
+            ["UC05 – Registrar devolução", "Registrar o retorno de um livro, que volta a ficar "
+                                           "disponível.", "RF06"],
+            ["UC06 – Renovar empréstimo", "Alterar a data prevista de devolução de um empréstimo em "
+                                          "aberto.", "RF07"],
+            ["UC07 – Consultar painel e atrasos", "Consultar os totais do acervo e os empréstimos por "
+                                                  "situação, e excluir lançamentos incorretos.",
+             "RF08, RF12"],
+        ], [4.2, 6.6, 2.6]),
+        figura(1, "Diagrama de casos de uso", diagrama_casos_de_uso()),
 
-        Paragraph("2.5 Diagrama entidade-relacionamento", TITULO2),
-        p("O banco de dados foi modelado com quatro entidades: categoria, livro, leitor e empréstimo. "
-          "A Figura 2 apresenta o diagrama entidade-relacionamento (DER), com os atributos de cada "
-          "entidade, as chaves primárias (PK), as chaves estrangeiras (FK) e a cardinalidade dos "
-          "relacionamentos (ELMASRI; NAVATHE, 2018)."),
+        Paragraph("2.4 Diagrama entidade-relacionamento", TITULO2),
+        p("O banco de dados possui quatro entidades: categoria, livro, leitor e empréstimo. A "
+          "Figura 2 apresenta o diagrama entidade-relacionamento (DER), com os atributos, as chaves "
+          "primárias (PK), as chaves estrangeiras (FK) e a cardinalidade dos relacionamentos "
+          "(ELMASRI; NAVATHE, 2018)."),
         figura(2, "Diagrama entidade-relacionamento", diagrama_er()),
         p("Os relacionamentos do modelo são os seguintes:"),
         *itens([
-            "<b>Categoria classifica livro (1:N):</b> uma categoria pode ter vários livros, e cada livro "
-            "pertence a exatamente uma categoria.",
-            "<b>Livro é emprestado em empréstimo (1:N):</b> um livro pode aparecer em vários empréstimos "
-            "ao longo do tempo, e cada empréstimo se refere a um único livro.",
-            "<b>Leitor realiza empréstimo (1:N):</b> um leitor pode realizar vários empréstimos, e cada "
-            "empréstimo pertence a um único leitor.",
+            "<b>Categoria classifica livro (1:N):</b> uma categoria pode ter vários livros, e cada "
+            "livro pertence a uma única categoria.",
+            "<b>Livro é emprestado em empréstimo (1:N):</b> um livro pode aparecer em vários "
+            "empréstimos, e cada empréstimo se refere a um único livro.",
+            "<b>Leitor realiza empréstimo (1:N):</b> um leitor pode realizar vários empréstimos, e "
+            "cada empréstimo pertence a um único leitor.",
         ]),
         p("Entre livro e leitor existe, portanto, um relacionamento de muitos para muitos, resolvido "
-          "pela entidade empréstimo, que guarda também as datas de cada operação. A situação do "
-          "empréstimo (no prazo, atrasado ou devolvido) não é armazenada: ela é calculada a partir "
-          "das datas no momento da consulta, o que evita guardar uma informação redundante que "
-          "poderia ficar desatualizada. Pelo mesmo motivo, a quantidade de exemplares disponíveis é "
-          "calculada, e não gravada."),
-        p("Os Quadros 7 a 10 apresentam o dicionário de dados de cada tabela."),
-        *quadro(7, "Dicionário de dados da tabela categoria", [
-            ["Campo", "Tipo", "Restrições", "Descrição"],
-            ["id", "INTEGER", "PK, autoincremento", "Identificador da categoria."],
-            ["nome", "TEXT", "NOT NULL, UNIQUE", "Nome da categoria."],
-            ["descricao", "TEXT", "—", "Descrição opcional."],
-        ], [3, 2, 3.6, 4.8]),
-        *quadro(8, "Dicionário de dados da tabela livro", [
-            ["Campo", "Tipo", "Restrições", "Descrição"],
-            ["id", "INTEGER", "PK, autoincremento", "Identificador do livro."],
-            ["titulo", "TEXT", "NOT NULL", "Título do livro."],
-            ["autor", "TEXT", "NOT NULL", "Autor ou autores."],
-            ["isbn", "TEXT", "UNIQUE", "Código ISBN (opcional)."],
-            ["ano_publicacao", "INTEGER", "—", "Ano de publicação (opcional)."],
-            ["quantidade", "INTEGER", "NOT NULL, CHECK (≥ 0)", "Total de exemplares do acervo."],
-            ["categoria_id", "INTEGER", "NOT NULL, FK → categoria", "Categoria do livro."],
-        ], [3, 2, 3.6, 4.8]),
-        *quadro(9, "Dicionário de dados da tabela leitor", [
-            ["Campo", "Tipo", "Restrições", "Descrição"],
-            ["id", "INTEGER", "PK, autoincremento", "Identificador do leitor."],
-            ["nome", "TEXT", "NOT NULL", "Nome completo."],
-            ["email", "TEXT", "NOT NULL, UNIQUE", "E-mail de contato."],
-            ["telefone", "TEXT", "—", "Telefone com DDD (opcional)."],
-            ["data_cadastro", "TEXT", "NOT NULL", "Data do cadastro, no formato AAAA-MM-DD."],
-        ], [3, 2, 3.6, 4.8]),
-        *quadro(10, "Dicionário de dados da tabela emprestimo", [
-            ["Campo", "Tipo", "Restrições", "Descrição"],
-            ["id", "INTEGER", "PK, autoincremento", "Identificador do empréstimo."],
-            ["livro_id", "INTEGER", "NOT NULL, FK → livro", "Livro emprestado."],
-            ["leitor_id", "INTEGER", "NOT NULL, FK → leitor", "Leitor que pegou o livro."],
-            ["data_emprestimo", "TEXT", "NOT NULL", "Data da retirada."],
-            ["data_prevista", "TEXT", "NOT NULL, CHECK (≥ data_emprestimo)", "Data limite para devolução."],
-            ["data_devolucao", "TEXT", "—", "Data da devolução; vazia enquanto o livro não é devolvido."],
-        ], [3, 2, 3.6, 4.8]),
-        p("O SQLite não possui um tipo específico para datas; por isso elas são gravadas como texto no "
-          "padrão ISO 8601 (AAAA-MM-DD), que mantém a ordem cronológica quando comparado (SQLITE, 2026). "
-          "Todas as chaves estrangeiras usam a opção ON DELETE RESTRICT, que impede a exclusão de um "
-          "registro referenciado por outro e implementa a regra RN06 diretamente no banco."),
-
-        Paragraph("2.6 Implementação", TITULO2),
-        p("O sistema foi implementado como uma aplicação web em camadas simples. O navegador envia "
-          "uma requisição HTTP, o Flask a encaminha para a função responsável pela rota, essa função "
-          "valida os dados, executa os comandos SQL no SQLite e devolve uma página HTML gerada por "
-          "um <i>template</i> Jinja2 (PALLETS, 2026). O código foi dividido em módulos, um para cada "
-          "entidade, registrados no Flask como <i>blueprints</i>. A organização das pastas é a seguinte:"),
-        KeepTogether([Preformatted(
-            "biblioteca-pds2/\n"
-            "  run.py             inicia o servidor\n"
-            "  seed.py            insere dados de exemplo\n"
-            "  requirements.txt   dependências do projeto\n"
-            "  app/\n"
-            "    __init__.py      cria e configura a aplicação\n"
-            "    db.py            conexão com o banco de dados\n"
-            "    schema.sql       criação das tabelas\n"
-            "    categorias.py    CRUD de categorias\n"
-            "    livros.py        CRUD de livros\n"
-            "    leitores.py      CRUD de leitores\n"
-            "    emprestimos.py   empréstimo, devolução e renovação\n"
-            "    painel.py        painel inicial\n"
-            "    templates/       páginas HTML (Jinja2)\n"
-            "    static/          folha de estilo (CSS)\n"
-            "  tests/             testes automatizados\n"
-            "  docs/              esta documentação", CODIGO)]),
-        p("Cada operação de CRUD corresponde a uma rota e a um comando SQL. O Quadro 11 mostra essa "
-          "correspondência para a entidade livro; as demais entidades seguem o mesmo padrão."),
-        *quadro(11, "Operações de CRUD da entidade livro", [
-            ["Operação", "Método e rota", "Comando SQL"],
-            ["Criar (Create)", "GET e POST /livros/novo", "INSERT INTO livro"],
-            ["Consultar (Read)", "GET /livros/", "SELECT com JOIN em categoria"],
-            ["Atualizar (Update)", "GET e POST /livros/&lt;id&gt;/editar", "UPDATE livro"],
-            ["Excluir (Delete)", "POST /livros/&lt;id&gt;/excluir", "DELETE FROM livro"],
-        ], [3.6, 5.4, 4.4]),
-        p("As Figuras 3 a 6 apresentam as principais telas do sistema em funcionamento, com os dados "
-          "de exemplo inseridos pelo arquivo seed.py."),
-        figura(3, "Painel inicial, com os totais do acervo e os empréstimos em atraso",
-               captura("painel.png", 1200, 760)),
-        figura(4, "Listagem de livros, com busca, filtro e exemplares disponíveis",
-               captura("livros.png", 1200, 760)),
-        figura(5, "Formulário de registro de empréstimo", captura("emprestimo-form.png", 1200, 560)),
-        figura(6, "Listagem de empréstimos, com filtro por situação", captura("emprestimos.png", 1200, 620)),
-
-        Paragraph("2.7 Testes", TITULO2),
-        p("Foram escritos 17 testes automatizados com a biblioteca unittest. Cada teste cria um banco "
-          "de dados temporário, simula as requisições do navegador e confere o resultado. Os testes "
-          "cobrem o CRUD das quatro entidades, as validações dos formulários e todas as regras de "
-          "negócio do Quadro 4, como a recusa de empréstimo sem exemplar disponível, o bloqueio do "
-          "leitor em atraso e a proibição de excluir registros com vínculos. Todos os testes são "
-          "executados com sucesso pelo comando <i>python -m unittest discover -s tests</i>."),
+          "pela entidade empréstimo. A situação do empréstimo (no prazo, atrasado ou devolvido) e a "
+          "quantidade de exemplares disponíveis não são gravadas: são calculadas a partir das datas "
+          "e dos empréstimos em aberto, o que evita informação redundante. As chaves estrangeiras "
+          "usam a opção ON DELETE RESTRICT, que impede no próprio banco a exclusão de um registro "
+          "referenciado por outro, como um livro que possui empréstimos."),
         PageBreak(),
     ]
-    return partes
 
 
 def conclusao():
@@ -600,26 +440,18 @@ def conclusao():
         Paragraph("3 CONCLUSÃO", TITULO1),
         p("O objetivo do projeto foi atingido: o sistema desenvolvido realiza as operações de CRUD "
           "sobre categorias, livros, leitores e empréstimos, comunica-se com um banco de dados "
-          "relacional e atende a todos os requisitos funcionais e não funcionais documentados."),
+          "relacional e atende aos requisitos funcionais e não funcionais documentados."),
         p("O principal aprendizado foi perceber o valor de documentar antes de programar. Com os "
           "requisitos, os casos de uso e o DER definidos, a implementação tornou-se uma tradução "
           "direta: cada entidade do diagrama virou uma tabela e um módulo do sistema, e cada caso de "
-          "uso virou um conjunto de telas e rotas. Sem essa etapa, várias decisões, como o que fazer "
-          "ao excluir um livro que já foi emprestado, só apareceriam no meio da programação."),
+          "uso virou um conjunto de telas e rotas."),
         p("Na parte de banco de dados, aprendi na prática a importância das chaves estrangeiras e "
-          "das restrições. Deixar o próprio banco recusar um dado inconsistente é mais seguro do que "
-          "depender apenas das validações da aplicação. Também compreendi por que informações que "
-          "podem ser calculadas, como a situação do empréstimo e os exemplares disponíveis, não "
-          "devem ser gravadas, e a razão de usar consultas parametrizadas para evitar injeção de SQL."),
-        p("No desenvolvimento web, aprendi como funciona o ciclo de requisição e resposta, a "
-          "diferença entre os métodos GET e POST, a organização de um projeto Flask em módulos e o "
-          "uso de <i>templates</i> para separar a lógica da apresentação. Os testes automatizados "
-          "mostraram seu valor ao permitir alterar o código com a segurança de que as regras de "
-          "negócio continuavam funcionando."),
-        p("Como trabalhos futuros, o sistema pode receber autenticação de usuários com perfis de "
-          "acesso, cálculo de multa por atraso, reserva de livros indisponíveis, envio de lembretes "
-          "por e-mail e relatórios de livros mais emprestados, além da publicação em um servidor "
-          "para acesso pela internet."),
+          "das restrições: deixar o próprio banco recusar um dado inconsistente é mais seguro do que "
+          "depender apenas das validações da aplicação. No desenvolvimento web, aprendi como "
+          "funciona o ciclo de requisição e resposta, a diferença entre os métodos GET e POST e a "
+          "organização de um projeto Flask em módulos."),
+        p("Como trabalhos futuros, o sistema pode receber autenticação de usuários, cálculo de multa "
+          "por atraso, reserva de livros indisponíveis e relatórios dos livros mais emprestados."),
         PageBreak(),
     ]
 
